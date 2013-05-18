@@ -1,7 +1,8 @@
 package dzack.Chess;
 
 public class ChessProgram {
-
+	static GameWindow g;
+	
 	void initPieces() {/* Sets up an initial game board*/}
 		// Build array of pieces for white and black
 		// Create GameWindow
@@ -9,8 +10,17 @@ public class ChessProgram {
 	void movePiece() {}
 	void writeGameToFile() {}
 	void readGameFromFile() {}
+	
 	public static void main(String[] args) {
-		GameWindow g = new GameWindow();
+		if (args.length == 0) {
+			g = new GameWindow();
+		}
+		else {
+			String inputFile = (String) args[0];
+			System.out.println(inputFile);
+			g = new GameWindow();
+			//g = new GameWindow(inputFile);
+		}
 		
 	}
 }

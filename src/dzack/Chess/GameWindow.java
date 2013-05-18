@@ -1,9 +1,9 @@
 package dzack.Chess;
+
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.List;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -13,16 +13,24 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-@SuppressWarnings("serial")
+
 public class GameWindow extends JFrame {
 	
-    static GridLabel[][] GridCells;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	static GridLabel[][] GridCells;		// Each cell on the board will be an individual object in this array
     static ArrayList <Piece> BlackPieces;
     static ArrayList <Piece> WhitePieces;
-    static ArrayList<GridLabel> potentialMoves;
+    static ArrayList<GridLabel> potentialMoves;	// Used to determine valid destinations for pieces 
     static Piece[] tempPiece;
     
+    /**
+     * Default constructor for a new game
+     */
     public GameWindow() {
+
         
     	GridCells = new GridLabel[8][8];
     	BlackPieces = new ArrayList<Piece>();
@@ -109,11 +117,26 @@ public class GameWindow extends JFrame {
          this.setVisible(true);
          this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
+    
+    /**
+     * Constructor called when loading a game from a PGN file
+     */
+    public GameWindow(String inputFile) {}
+    
+    /**
+     * Cycles through the current moves that a piece can make and lights up their grid points
+     * Generally called when a piece is clicked to display where it can go. 
+     */
     public static void displayMoves() {
     	for(GridLabel i : potentialMoves) {
 			i.setBackground(Color.GRAY);
 		}
     }
+    /**
+     * Undoes what displayMoves() does - cycles through the potential moves and resets them back their default colors.
+     * Also empties the list of potential moves - this is generally called when deselecting a piece, or after a piece
+     * has already moved.
+     */
     public static void resetSquares() {
     	for(GridLabel i : potentialMoves) {
 			i.setBackground(Color.LIGHT_GRAY);
@@ -148,15 +171,15 @@ class LabelListener implements MouseListener, Runnable {
 			}
 			
 			if (destination != null) { //Inside range
-				destination.associatePiece(g.piece);
-				g.dissociatePiece();
+				destination.associatePiece(currentlyClickedLabel.piece);
+				currentlyClickedLabel.dissociatePiece();
 			}
 			
-			else {
+			
 				currentlyClickedLabel.setBackground(Color.LIGHT_GRAY);
 				GameWindow.resetSquares();
 				currentlyClickedLabel = null;
-			}
+			
 		}
 		else if(currentlyClickedLabel == null) // Nothing has been clicked
 		{
@@ -175,24 +198,17 @@ class LabelListener implements MouseListener, Runnable {
 	}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+	public void mouseEntered(MouseEvent e) {		}
+
+	@Override
+	public void mouseExited(MouseEvent e) {		
 	}
 
 	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-	}
+	public void mousePressed(MouseEvent e) {}
 		
 	@Override
-	public void mouseReleased(MouseEvent e) {
-	}
+	public void mouseReleased(MouseEvent e) {}
 
 	@Override
 	public void run() {
@@ -200,13 +216,31 @@ class LabelListener implements MouseListener, Runnable {
 	}
 }
 
+/**
+ * Each grid point on the chess board is abstracted as a Grid Label, which can fill a grid array. Each grid space has a
+ * set of (x,y) coordinates, and may have a piece associated with it to denote that the space is occupied.
+ *
+ */
 @SuppressWarnings("serial")
 class GridLabel extends JLabel {
 	public int x, y;
-	public boolean accesibleRightNow = false;
 	Piece piece;
-	public boolean clicked = false;
+	public boolean accesibleRightNow = false;
+	public boolean clicked = false;				//deprecated?
 	
+	/**
+	 * General constructor for custom GridLabel objects. 
+	 * Each grid location can have a piece associated with it - if it is null, the space is empty.
+	 * 
+	 * @param text
+	 * 		What will this grade space display? (Generally accepts a chess piece in unicode or a marker for empty spaces)
+	 * @param horizontalAlignment
+	 * 		How will the text inside of this label be aligned? (Required by superclass)
+	 * @param x_loc
+	 * 		Within the grid, what is its x displacement? (Remember, Gridview numbers x vertically and y horizontally)
+	 * @param y_loc
+	 * 		Within the grid, what is its y displacement? 
+	 */
 	public GridLabel(String text, int horizontalAlignment, int x_loc, int y_loc) {
 		super(text,horizontalAlignment);
 		x=x_loc;
@@ -215,83 +249,49 @@ class GridLabel extends JLabel {
 		setBackground(Color.LIGHT_GRAY);
 		setFont(new Font("Serif", Font.PLAIN, 45));
 	}
+	
+	/**
+	 * Pass this function a Piece object in order to link the grid location to that particular piece.
+	 * Updates the label text accordingly.
+	 * @param p
+	 * 		Piece to associate.
+	 */
 	public void associatePiece(Piece p) {
 		GameWindow.GridCells[x][y].piece = p;
 		GameWindow.GridCells[x][y].setText(p.getID());
 	}
+	
+	/**
+	 * Call this function to delete the link between this grid location and whatever piece it was previously
+	 * associated with.
+	 */
 	public void dissociatePiece() {
 		this.piece = null;
 		this.setText("_");
 	}
+	
+	/**
+	 * Returns whether this grid location has already been clicked. This should correspond to when it is lit up,
+	 * and its results can be used to tell if a piece is the current piece selected. 
+	 */
 	public boolean isClicked() {
 		return clicked;
 	}
+	
+	/*
+	 * Everytime you click a label, this should be called as a toggle.
+	 */
 	public void onClick() {
 		this.clicked = !(this.clicked);
 	}
+	
+	/**
+	 * Placeholder for a future function. Determines special moves in some cases (e.g., pawns).
+	 * 
+	 */
 	public boolean isOccupiedByOpponent() {
 		return false;
 	}
 }
 
-class Piece {
-	GridLabel currentPosition;
-	String pieceID = "";
-	int currentx, currenty;
-	int xrange;
-	int yrange;
-	boolean firstMove;
 
-	public Piece(int x, int y, String ID) {
-		currentx = x; currenty = y; pieceID = ID;
-	}
-	public String getID() {
-		return pieceID;
-	}
-	public void getPossibleMoves() {
-		// TODO: Piece types should subclass piece, ie Knight extends Piece, and override this method
-		GameWindow.potentialMoves.clear();
-	}
-	public void update() {}
-}
-class Pawn extends Piece {
-	int color; // 0 - Black		1 - White
-	
-	public Pawn(int x, int y, String ID, String color) {
-		super(x,y,ID);
-		if (color == "white") {
-			xrange = -2;
-			yrange = 1;
-			this.color = 1;
-		}
-		if (color == "black") {
-			xrange = 2;
-			yrange = 1;
-			this.color = 0;
-		}
-		firstMove = true;
-	}
-	
-	public void getPossibleMoves() { 
-			super.getPossibleMoves();
-			for (int i = 0; i < Math.abs(xrange); i++) {
-				if (currentx + xrange - ((int) Math.pow(-1,color)*i) >= 0) { 
-					GameWindow.potentialMoves.add(GameWindow.GridCells[currentx + xrange - ((int) Math.pow(-1,color)*i) ][currenty]);
-				}
-			}
-			if ( currentx - 1 >= 0 && currenty - 1 >= 0 &&
-					GameWindow.GridCells[currentx + ((int) Math.pow(-1,color)) ][currenty - 1].isOccupiedByOpponent()) {	// Diagonol left space occupied
-				GameWindow.potentialMoves.add(GameWindow.GridCells[currentx + ((int) Math.pow(-1,color)) ][currenty  - 1]);
-			}
-			if (currentx - 1 >= 0 && currenty + 1 <= 7 &&
-					GameWindow.GridCells[currentx + ((int) Math.pow(-1,color)) ][currenty + 1].isOccupiedByOpponent()) { 	//Diagonol right space occupied
-				GameWindow.potentialMoves.add(GameWindow.GridCells[currentx + ((int) Math.pow(-1,color)) ][currenty + 1]);
-			}
-			
-	}
-	public void update() {
-		firstMove = false;
-		if (color == 1) xrange = -1;
-		if (color == 0) xrange = 1;
-	}
-}
